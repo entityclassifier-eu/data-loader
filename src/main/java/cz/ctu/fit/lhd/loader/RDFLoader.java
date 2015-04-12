@@ -73,8 +73,8 @@ public class RDFLoader {
             loadSettings(settings);
             if( datasets.equals("all") ){
 
-                    loadDbpediaInstanceTypesEN();
                     loadDbpediaInstanceTypesDE();
+                    loadDbpediaInstanceTypesEN();
                     loadDbpediaInstanceTypesNL();
                     
                     loadInterlanguageLinksEN();
