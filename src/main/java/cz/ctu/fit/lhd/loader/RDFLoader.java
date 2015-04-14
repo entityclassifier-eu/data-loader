@@ -33,14 +33,13 @@ import java.util.logging.Logger;
  * www: http://dojchinovski.mk
  */
 public class RDFLoader {
-        
+
     private String enDbpediaInstances;
     private String deDbpediaInstances;
     private String nlDbpediaInstances;
     
     private String yagoLabels;
-    private String yagoTypes;    
-    private String yagoMultilanguageLabels;
+    private String yagoTypes;
     
     private String enLHD10;
     private String deLHD10;
@@ -81,9 +80,8 @@ public class RDFLoader {
                     loadInterlanguageLinksDE();
                     loadInterlanguageLinksNL();
                     
-                    loadYAGOENLabels();
+                    loadYAGOLabels();
                     loadYAGOTypes();
-                    loadYAGOMultilingualLabels();
 
                     loadLHD10EN();
                     loadLHD10DE();
@@ -107,15 +105,12 @@ public class RDFLoader {
             } else if(datasets.equals("loadInterlanguageLinksNL")){
                     loadInterlanguageLinksNL();
             
-            } else if(datasets.equals("loadYAGOENLabels")){
-                    loadYAGOENLabels();
+            } else if(datasets.equals("loadYAGOLabels")){
+                    loadYAGOLabels();
             
             } else if(datasets.equals("loadYAGOTypes")){
                     loadYAGOTypes();
 
-            } else if(datasets.equals("loadYAGOMultilingualLabels")){
-                    loadYAGOMultilingualLabels();
-            
             } else if(datasets.equals("loadLHD10EN")){
                     loadLHD10EN();
             
@@ -143,7 +138,7 @@ public class RDFLoader {
         
         yagoLabels = settings.getProperty("yagoLabels");
         yagoTypes = settings.getProperty("yagoTypes");
-        yagoMultilanguageLabels = settings.getProperty("yagoMultilanguageLabels");
+//        yagoMultilanguageLabels = settings.getProperty("yagoMultilanguageLabels");
         
         enLHD10 = settings.getProperty("enLHD10");
         deLHD10 = settings.getProperty("deLHD10");
@@ -157,9 +152,9 @@ public class RDFLoader {
     }
 
     BasicDBObject entry;
-    RDFNode subject;
-    RDFNode object;
-    Statement stm;
+    RDFNode       subject;
+    RDFNode       object;
+    Statement     stm;
        
     private void loadLHD10EN() {
         
@@ -210,7 +205,7 @@ public class RDFLoader {
         } catch (Exception ex) {
             Logger.getLogger(RDFLoader.class.getName()).log(Level.SEVERE, null, ex);
         }        
-    }    
+    }
     
     private void loadLHD10DE() {
         try {
@@ -262,7 +257,7 @@ public class RDFLoader {
         } catch (Exception ex) {
             Logger.getLogger(RDFLoader.class.getName()).log(Level.SEVERE, null, ex);
         }        
-    }    
+    }
         
     private void loadLHD10NL() {
         try {
@@ -313,7 +308,7 @@ public class RDFLoader {
         } catch (Exception ex) {
             Logger.getLogger(RDFLoader.class.getName()).log(Level.SEVERE, null, ex);
         }        
-    }    
+    }
 
     private void loadInterlanguageLinksEN() {
 //                        
@@ -557,9 +552,9 @@ public class RDFLoader {
         }
         System.out.println("Finished inserting NL dbpedia instances");
        
-    }  
+    }
     
-    private void loadYAGOENLabels() {
+    private void loadYAGOLabels() {
         
         BufferedReader br = null;
         try {
@@ -580,7 +575,7 @@ public class RDFLoader {
                 
                 stm = line.split("\\t");
                 // http://yago-knowledge.org/resource/Eduard_Telcs
-                if(stm[2].equals("rdfs:label")){
+                if(stm[2].equals("rdfs:label")) {
                     
                     if(stm[3].endsWith("\"@eng")) {
                         ////System.out.println("subj: " + stm[1].substring(1, stm[1].length()-1) + " , obj: " + stm[3].substring(1, stm[3].length()-5));
@@ -591,17 +586,50 @@ public class RDFLoader {
                         MongoDBClient.getDBInstance(dbName).getCollection("entities_yago").update(
                                 new BasicDBObject().append("uri", "http://yago-knowledge.org/resource/" + stm[1].substring(1, stm[1].length()-1)),
                                 label, true, false);
-                    } else {
-//                        //System.out.println("subj: " + stm[1] + " , obj: " + stm[3].substring(1, stm[3].length()-1));  
+                    }
+                    if(stm[3].endsWith("\"@deu") || stm[3].endsWith("\"@ger")) {
+                        ////System.out.println("subj: " + stm[1].substring(1, stm[1].length()-1) + " , obj: " + stm[3].substring(1, stm[3].length()-5));
                         BasicDBObject label = new BasicDBObject().append("$push",
                                     new BasicDBObject().append("labels", new BasicDBObject()
-                                        .append("label",  stm[3].substring(1, stm[3].length()-1))
-                                        .append("lang", "en")));
+                                        .append("label",  stm[3].substring(1, stm[3].length()-5))
+                                        .append("lang", "de")));
+                        MongoDBClient.getDBInstance(dbName).getCollection("entities_yago").update(
+                                new BasicDBObject().append("uri", "http://yago-knowledge.org/resource/" + stm[1].substring(1, stm[1].length()-1)),
+                                label, true, false);
+                    }
+                    if(stm[3].endsWith("\"@dut") || stm[3].endsWith("\"@nld")) {
+                        ////System.out.println("subj: " + stm[1].substring(1, stm[1].length()-1) + " , obj: " + stm[3].substring(1, stm[3].length()-5));
+                        BasicDBObject label = new BasicDBObject().append("$push",
+                                    new BasicDBObject().append("labels", new BasicDBObject()
+                                        .append("label",  stm[3].substring(1, stm[3].length()-5))
+                                        .append("lang", "nl")));
                         MongoDBClient.getDBInstance(dbName).getCollection("entities_yago").update(
                                 new BasicDBObject().append("uri", "http://yago-knowledge.org/resource/" + stm[1].substring(1, stm[1].length()-1)),
                                 label, true, false);
                     }
                 }
+//                if(stm[2].equals("rdfs:label")) {
+//                    
+//                    if(stm[3].endsWith("\"@eng")) {
+//                        ////System.out.println("subj: " + stm[1].substring(1, stm[1].length()-1) + " , obj: " + stm[3].substring(1, stm[3].length()-5));
+//                        BasicDBObject label = new BasicDBObject().append("$push",
+//                                    new BasicDBObject().append("labels", new BasicDBObject()
+//                                        .append("label",  stm[3].substring(1, stm[3].length()-5))
+//                                        .append("lang", "en")));
+//                        MongoDBClient.getDBInstance(dbName).getCollection("entities_yago").update(
+//                                new BasicDBObject().append("uri", "http://yago-knowledge.org/resource/" + stm[1].substring(1, stm[1].length()-1)),
+//                                label, true, false);
+//                    } else {
+////                        //System.out.println("subj: " + stm[1] + " , obj: " + stm[3].substring(1, stm[3].length()-1));  
+//                        BasicDBObject label = new BasicDBObject().append("$push",
+//                                    new BasicDBObject().append("labels", new BasicDBObject()
+//                                        .append("label",  stm[3].substring(1, stm[3].length()-1))
+//                                        .append("lang", "en")));
+//                        MongoDBClient.getDBInstance(dbName).getCollection("entities_yago").update(
+//                                new BasicDBObject().append("uri", "http://yago-knowledge.org/resource/" + stm[1].substring(1, stm[1].length()-1)),
+//                                label, true, false);
+//                    }
+//                }
             }
             //System.out.println(counter);
             br.close();
@@ -617,55 +645,6 @@ public class RDFLoader {
             }
         }
         System.out.println("Yago EN labels was successfully loaded");
-    }    
-
-    private void loadYAGOMultilingualLabels() {
-        
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(yagoMultilanguageLabels));
-            String line;
-            String[] stm;
-            int step = 0;
-            int counter = 0;
-            
-            while ((line = br.readLine()) != null) {
-                
-                counter ++;
-                step++;
-                if(step == 10000){
-                    System.out.println(counter);
-                    step=0;
-                }
-
-                stm = line.split("\\t");
-                   
-                if(stm[3].endsWith("\"@deu")) {
-                    ////System.out.println("subj: " + stm[1].substring(1, stm[1].length()-1) + " , obj: " + stm[3].substring(1, stm[3].length()-5));
-                    BasicDBObject label = new BasicDBObject().append("$push",
-                                    new BasicDBObject().append("labels", new BasicDBObject()
-                                        .append("label",  stm[3].substring(1, stm[3].length()-5))
-                                        .append("lang", "de")));
-                    
-                    MongoDBClient.getDBInstance(dbName).getCollection("entities_yago").update(
-//                            new BasicDBObject().append("uri", "http://de.dbpedia.org/resource/"+stm[1].substring(1, stm[1].length()-1)),                            
-                            new BasicDBObject().append("uri", "http://yago-knowledge.org/resource/"+stm[1].substring(1, stm[1].length()-1)),                            
-                                label, true, false);
-                }
-            }
-            br.close();            
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(RDFLoader.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(RDFLoader.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                br.close();
-            } catch (IOException ex) {
-                Logger.getLogger(RDFLoader.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        System.out.println("Yago multilangual labels was successfully loaded");
     }
     
     private void loadYAGOTypes() {
